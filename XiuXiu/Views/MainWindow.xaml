@@ -15,6 +15,7 @@
     <Window.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
         <converters:InverseBoolConverter x:Key="InverseBool"/>
+        <converters:UrlToImageConverter x:Key="UrlToImage"/>
     </Window.Resources>
 
     <Grid>
@@ -133,13 +134,9 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <Border Grid.Column="0" Width="52" Height="52"
-                                                    Background="{StaticResource PanelBackgroundBrush}">
-                                                <TextBlock Text="{Binding Type}" FontSize="10"
-                                                           HorizontalAlignment="Center"
-                                                           VerticalAlignment="Center"
-                                                           Foreground="{StaticResource SecondaryTextBrush}"/>
-                                            </Border>
+                                            <Image Grid.Column="0" Width="52" Height="52"
+                                                   Stretch="UniformToFill"
+                                                   Source="{Binding Url, Converter={StaticResource UrlToImage}}"/>
                                             <StackPanel Grid.Column="1" Margin="8,0" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding SourceElement}" FontSize="11"
                                                            Foreground="{StaticResource AccentBrush}"/>
@@ -148,7 +145,9 @@
                                                            Foreground="{StaticResource SecondaryTextBrush}"/>
                                             </StackPanel>
                                             <Button Grid.Column="2" Width="28" Height="28" Content="⬇" FontSize="12"
-                                                    ToolTip="下载此资源"/>
+                                                    ToolTip="下载此资源"
+                                                    Command="{Binding DataContext.DownloadSingleMediaCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>

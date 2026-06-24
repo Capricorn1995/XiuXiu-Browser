@@ -168,8 +168,30 @@ public partial class MainViewModel : ObservableObject
     {
         if (ExtractedMedia.Count == 0) return;
         StatusText = $"正在下载 {ExtractedMedia.Count} 个资源...";
+        string downloadDir = _downloadService.GetDownloadDirectory();
         await _downloadService.StartBatchDownloadAsync(ExtractedMedia.Select(m => m.Url).ToList());
-        StatusText = $"下载完成: {ExtractedMedia.Count} 个资源";
+        StatusText = $"下载完成: {ExtractedMedia.Count} 个资源 → {downloadDir}";
+    }
+
+    [RelayCommand]
+    private async Task DownloadSingleMedia(MediaItem? item)
+    {
+        if (item == null) return;
+        StatusText = $"正在下载: {item.FileName}...";
+        try
+        {
+            var result = await _downloadService.StartDownloadAsync(item.Url);
+            if (result.Status == Models.DownloadStatus.Completed)
+                StatusText = $"下载完成: {item.FileName}";
+            else if (result.Status == Models.DownloadStatus.Failed)
+                StatusText = $"下载失败: {result.ErrorMessage ?? "未知错误"}";
+            else
+                StatusText = $"下载状态: {result.Status}";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"下载失败: {ex.Message}";
+        }
     }
 
     // ===== 书签命令 =====
@@ -201,8 +223,52 @@ public partial class MainViewModel : ObservableObject
 
     // ===== 面板切换 =====
 
-    [RelayCommand] private void ToggleDownloadPanel() => IsDownloadPanelVisible = !IsDownloadPanelVisible;
-    [RelayCommand] private void ToggleBookmarkPanel() => IsBookmarkPanelVisible = !IsBookmarkPanelVisible;
-    [RelayCommand] private void ToggleHistoryPanel() => IsHistoryPanelVisible = !IsHistoryPanelVisible;
-    [RelayCommand] private void ToggleSettingsPanel() => IsSettingsPanelVisible = !IsSettingsPanelVisible;
+    [RelayCommand]
+    private void ToggleDownloadPanel()
+    {
+        IsDownloadPanelVisible = !IsDownloadPanelVisible;
+        if (IsDownloadPanelVisible)
+        {
+            string dir = _downloadService.GetDownloadDirectory();
+            StatusText = $"下载目录: {dir}";
+            // 尝试用文件管理器打开下载目录
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = dir,
+                    UseShellExecute = true
+                });
+            }
+            catch
+            {
+                StatusText = $"下载目录: {dir}（无法打开资源管理器）";
+            }
+        }
+        else
+        {
+            StatusText = "下载面板已关闭";
+        }
+    }
+
+    [RelayCommand]
+    private void ToggleBookmarkPanel()
+    {
+        IsBookmarkPanelVisible = !IsBookmarkPanelVisible;
+        StatusText = IsBookmarkPanelVisible ? "书签面板已打开" : "书签面板已关闭";
+    }
+
+    [RelayCommand]
+    private void ToggleHistoryPanel()
+    {
+        IsHistoryPanelVisible = !IsHistoryPanelVisible;
+        StatusText = IsHistoryPanelVisible ? "历史记录面板已打开" : "历史记录面板已关闭";
+    }
+
+    [RelayCommand]
+    private void ToggleSettingsPanel()
+    {
+        IsSettingsPanelVisible = !IsSettingsPanelVisible;
+        StatusText = IsSettingsPanelVisible ? "设置面板已打开" : "设置面板已关闭";
+    }
 }

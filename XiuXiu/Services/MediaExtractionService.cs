@@ -52,10 +52,12 @@ public class MediaExtractionService : IMediaExtractionService
                         string pageUrl = webView.Source;
                         foreach (var item in jsItems)
                         {
+                            var mediaType = item.type == "video" ? MediaType.Video : MediaType.Image;
                             allItems.Add(new MediaItem
                             {
                                 Url = item.url ?? "",
-                                Type = item.type == "video" ? MediaType.Video : MediaType.Image,
+                                ThumbnailUrl = mediaType == MediaType.Image ? (item.url ?? "") : "",
+                                Type = mediaType,
                                 SourceElement = item.sourceElement ?? "",
                                 SourcePageUrl = pageUrl,
                                 Width = item.width,
@@ -319,7 +321,7 @@ public class MediaExtractionService : IMediaExtractionService
 
     /// <summary>
     /// 判断 URL 是否为有效的媒体资源
-    /// 过滤 data: URI、SVG 文件和空 URL
+    /// 过滤 data: URI、SVG 文件，确保是已知的图片或视频格式
     /// </summary>
     private static bool IsValidMediaUrl(string url)
     {
@@ -334,7 +336,54 @@ public class MediaExtractionService : IMediaExtractionService
         if (url.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
             return false;
 
-        return true;
+        // 已知的图片扩展名
+        var imageExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".ico", ".tiff", ".tif" };
+        // 已知的视频扩展名
+        var videoExtensions = new[] { ".mp4", ".webm", ".m3u8", ".flv", ".mov", ".avi", ".mkv", ".wmv", ".ogg" };
+
+        // 提取 URL 路径（去掉查询参数和片段）
+        string path = url;
+        try
+        {
+            var uri = new Uri(url);
+            path = uri.AbsolutePath;
+        }
+        catch { }
+
+        // 检查是否有已知的媒体扩展名
+        foreach (var ext in imageExtensions)
+        {
+            if (path.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        foreach (var ext in videoExtensions)
+        {
+            if (path.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        // 对于来自已知 CDN 的 URL（无扩展名），也认为是有效的
+        var knownCdnDomains = new[]
+        {
+            "douyinvod.com", "douyincdn.com", "douyin.com",
+            "pstatp.com", "ixigua.com", "bytedance.com",
+            "alicdn.com", "cloudfront.net", "fastly.net",
+            "qpic.cn", "sinaimg.cn", "imgur.com", "picsum.photos",
+            "wp.com", "gravatar.com", "twimg.com"
+        };
+
+        foreach (var domain in knownCdnDomains)
+        {
+            if (url.Contains(domain, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        // 过滤 blob: URL（WebView2 本地 blob 无法下载）
+        if (url.StartsWith("blob:", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        // 默认拒绝没有已知扩展名且非 CDN 的 URL
+        return false;
     }
 
     /// <summary>
@@ -403,6 +452,7 @@ public class MediaExtractionService : IMediaExtractionService
         return new MediaItem
         {
             Url = url,
+            ThumbnailUrl = type == MediaType.Image ? url : "",
             Type = type,
             SourceElement = sourceElement,
             SourcePageUrl = baseUrl
@@ -463,11 +513,57 @@ public class MediaExtractionService : IMediaExtractionService
         }
     });
 
-    // 收集 video 标签
-    document.querySelectorAll('video source[src], video[src]').forEach(function(el) {
-        var src = el.src || el.getAttribute('src');
+    // 收集 video 标签（包括动态创建的，使用 currentSrc）
+    document.querySelectorAll('video').forEach(function(video) {
+        var src = video.currentSrc || video.src || video.getAttribute('src');
         if (src && !src.startsWith('blob:') && !src.startsWith('data:')) {
-            results.push({url: resolveUrl(src), type: 'video', sourceElement: 'video>source'});
+            results.push({url: resolveUrl(src), type: 'video', sourceElement: 'video[currentSrc]', width: video.videoWidth || 0, height: video.videoHeight || 0});
+        }
+        var poster = video.getAttribute('poster');
+        if (poster && !poster.startsWith('data:')) {
+            results.push({url: resolveUrl(poster), type: 'image', sourceElement: 'video[poster]'});
+        }
+        video.querySelectorAll('source').forEach(function(source) {
+            var sourceSrc = source.getAttribute('src') || source.src;
+            if (sourceSrc && !sourceSrc.startsWith('blob:') && !sourceSrc.startsWith('data:')) {
+                results.push({url: resolveUrl(sourceSrc), type: 'video', sourceElement: 'video>source'});
+            }
+        });
+    });
+
+    // 收集 iframe 源
+    document.querySelectorAll('iframe').forEach(function(iframe) {
+        var src = iframe.getAttribute('src');
+        if (src && src.indexOf('http') === 0) {
+            results.push({url: src, type: 'video', sourceElement: 'iframe[src]'});
+        }
+        // 尝试访问同源 iframe 内的视频
+        try {
+            if (iframe.contentDocument) {
+                iframe.contentDocument.querySelectorAll('video').forEach(function(v) {
+                    var vs = v.currentSrc || v.src || v.getAttribute('src');
+                    if (vs && !vs.startsWith('blob:') && !vs.startsWith('data:')) {
+                        results.push({url: resolveUrl(vs), type: 'video', sourceElement: 'iframe>video'});
+                    }
+                });
+            }
+        } catch(e) {}
+    });
+
+    // 检查 window.__INITIAL_STATE__ 等全局数据
+    ['__INITIAL_STATE__', '__NUXT__', '__NEXT_DATA__'].forEach(function(key) {
+        var data = window[key];
+        if (data && typeof data === 'object') {
+            try {
+                var str = JSON.stringify(data);
+                var urlMatches = str.match(/https?:\/\/[^\s""'<>(){}[\]]+\.(mp4|webm|m3u8|flv|mov|avi|mkv|jpg|jpeg|png|gif|webp)/gi);
+                if (urlMatches) {
+                    urlMatches.forEach(function(u) {
+                        var t = /\.(mp4|webm|m3u8|flv|mov|avi|mkv)$/i.test(u) ? 'video' : 'image';
+                        results.push({url: u, type: t, sourceElement: 'global[' + key + ']'});
+                    });
+                }
+            } catch(e) {}
         }
     });
 

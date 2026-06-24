@@ -50,4 +50,8 @@ public interface IDownloadService
     /// <summary>取消指定下载任务</summary>
     /// <param name="downloadId">下载任务 ID</param>
     void CancelDownload(string downloadId);
+
+    /// <summary>获取下载保存目录路径</summary>
+    /// <returns>下载目录的完整路径</returns>
+    string GetDownloadDirectory();
 }

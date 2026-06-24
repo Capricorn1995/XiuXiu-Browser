@@ -261,7 +261,7 @@ public class DownloadService : IDownloadService
     /// 获取下载保存目录
     /// 优先使用用户设置的自定义路径，否则使用默认路径
     /// </summary>
-    private string GetDownloadDirectory()
+    public string GetDownloadDirectory()
     {
         string settingsPath = _settingsService.DownloadPath;
         string directory = FileHelper.GetDownloadPath(settingsPath);

@@ -55,6 +55,18 @@
         // === 第八步：提取 JSON-LD 结构化数据中的图片 ===
         collectJsonLdImages(items);
 
+        // === 第九步：提取动态创建的视频元素（currentSrc） ===
+        collectDynamicVideos(items);
+
+        // === 第十步：提取 iframe 中的视频源 ===
+        collectIframeSources(items);
+
+        // === 第十一步：提取 window.__INITIAL_STATE__ 等全局数据 ===
+        collectGlobalStateData(items);
+
+        // === 第十二步：检测 canvas 元素（可能是视频帧） ===
+        collectCanvasElements(items);
+
         // === 去重和过滤 ===
         return deduplicateAndFilter(items);
     }
@@ -306,6 +318,123 @@
     }
 
     /**
+     * 第九步：提取动态创建的视频元素
+     * 很多网站（如抖音）通过 JavaScript 动态创建 video 标签，
+     * 初始 HTML 中不存在，需要用 currentSrc 或 src 属性检测
+     */
+    function collectDynamicVideos(items) {
+        var videos = document.querySelectorAll('video');
+        for (var i = 0; i < videos.length; i++) {
+            var video = videos[i];
+            
+            // 优先使用 currentSrc（当前播放源的 URL）
+            var src = video.currentSrc || video.src;
+            if (src && src !== window.location.href && !src.startsWith('blob:') && !src.startsWith('data:')) {
+                var absoluteUrl = resolveUrl(src);
+                if (absoluteUrl) {
+                    addItem(items, absoluteUrl, 'video', 'video[currentSrc]', video.videoWidth || 0, video.videoHeight || 0);
+                }
+            }
+
+            // 检查 source 子元素
+            var sources = video.querySelectorAll('source');
+            for (var j = 0; j < sources.length; j++) {
+                var sourceSrc = sources[j].getAttribute('src') || sources[j].src;
+                if (sourceSrc && !sourceSrc.startsWith('blob:') && !sourceSrc.startsWith('data:')) {
+                    var absoluteUrl = resolveUrl(sourceSrc);
+                    if (absoluteUrl) {
+                        addItem(items, absoluteUrl, 'video', 'video>source', video.videoWidth || 0, video.videoHeight || 0);
+                    }
+                }
+            }
+
+            // 提取 poster（视频封面图）
+            var poster = video.getAttribute('poster');
+            if (poster && !poster.startsWith('data:')) {
+                var posterUrl = resolveUrl(poster);
+                if (posterUrl && !isSvgFile(posterUrl)) {
+                    addItem(items, posterUrl, 'image', 'video[poster]', video.videoWidth || 0, video.videoHeight || 0);
+                }
+            }
+        }
+    }
+
+    /**
+     * 第十步：提取 iframe 中的视频源
+     * 抖音等平台通过 iframe 嵌入视频
+     * 注意：同源 iframe 才能访问其内容
+     */
+    function collectIframeSources(items) {
+        var iframes = document.querySelectorAll('iframe');
+        for (var i = 0; i < iframes.length; i++) {
+            var iframe = iframes[i];
+            var iframeSrc = iframe.getAttribute('src');
+            
+            // 记录 iframe 的 src（通常是视频嵌入页面）
+            if (iframeSrc && iframeSrc.indexOf('http') === 0) {
+                addItem(items, iframeSrc, 'video', 'iframe[src]', iframe.offsetWidth || 0, iframe.offsetHeight || 0);
+            }
+
+            // 尝试在同源 iframe 中查找视频
+            try {
+                if (iframe.contentDocument) {
+                    var iframeVideos = iframe.contentDocument.querySelectorAll('video');
+                    for (var j = 0; j < iframeVideos.length; j++) {
+                        var v = iframeVideos[j];
+                        var src = v.currentSrc || v.src || v.getAttribute('src');
+                        if (src && !src.startsWith('blob:') && !src.startsWith('data:')) {
+                            var absoluteUrl = resolveUrl(src);
+                            if (absoluteUrl) {
+                                addItem(items, absoluteUrl, 'video', 'iframe>video', v.videoWidth || 0, v.videoHeight || 0);
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                // 跨域 iframe 无法访问，跳过
+            }
+        }
+    }
+
+    /**
+     * 第十一步：提取 window.__INITIAL_STATE__ 等全局数据
+     * 很多 SPA 网站（抖音、小红书等）将数据预存到全局变量中
+     */
+    function collectGlobalStateData(items) {
+        // 检查常见的全局数据变量名
+        var globalKeys = [
+            '__INITIAL_STATE__', '__NUXT__', '__NEXT_DATA__',
+            '__DATA__', '__APP_DATA__', 'pageData', 'renderData'
+        ];
+        
+        for (var k = 0; k < globalKeys.length; k++) {
+            var data = window[globalKeys[k]];
+            if (data) {
+                extractImagesFromObject(data, items, 'global[' + globalKeys[k] + ']');
+            }
+        }
+    }
+
+    /**
+     * 第十二步：检测 canvas 元素
+     * 某些网站使用 canvas 渲染视频帧
+     */
+    function collectCanvasElements(items) {
+        var canvases = document.querySelectorAll('canvas');
+        for (var i = 0; i < canvases.length; i++) {
+            var canvas = canvases[i];
+            // 只关注较大的 canvas（可能是视频帧而非小图标）
+            if (canvas.width > 200 && canvas.height > 150) {
+                // canvas 不能直接作为媒体资源下载，但记录其存在
+                var dataUrl = canvas.toDataURL ? canvas.toDataURL('image/png') : null;
+                if (dataUrl) {
+                    addItem(items, dataUrl, 'image', 'canvas[frame]', canvas.width, canvas.height);
+                }
+            }
+        }
+    }
+
+    /**
      * 解析 srcset 属性，返回最大尺寸的图片 URL
      * 格式示例："image-480.jpg 480w, image-800.jpg 800w, image-1200.jpg 1200w"
      */
@@ -384,7 +513,6 @@
 
     /**
      * 去重并按 URL 过滤
-     * - 过滤 data: URI
      * - 过滤 SVG 文件
      * - URL 去重
      * - 返回 JSON 字符串
@@ -395,7 +523,7 @@
 
         for (var i = 0; i < items.length; i++) {
             var item = items[i];
-            if (!item.url || item.url.indexOf('data:') === 0 || isSvgFile(item.url)) {
+            if (!item.url || isSvgFile(item.url)) {
                 continue;
             }
             if (!seen[item.url]) {
