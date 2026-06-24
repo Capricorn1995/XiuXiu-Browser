@@ -40,7 +40,7 @@
                 <TextBlock Text="嗅嗅浏览器" FontSize="24" FontWeight="SemiBold"
                            Foreground="{DynamicResource PrimaryTextBrush}"
                            HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                <TextBlock Text="输入网址开始浏览，或使用"嗅一嗅"功能提取媒体资源"
+                <TextBlock Text="输入网址开始浏览，或使用「嗅一嗅」功能提取媒体资源"
                            FontSize="14" Foreground="{DynamicResource SecondaryTextBrush}"
                            HorizontalAlignment="Center"/>
             </StackPanel>

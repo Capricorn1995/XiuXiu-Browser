@@ -94,7 +94,6 @@ public partial class BookmarkViewModel : ObservableObject
     /// <summary>
     /// 添加书签
     /// </summary>
-    [RelayCommand]
     private async Task AddBookmark(string url, string title)
     {
         if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(title))

@@ -63,7 +63,6 @@
                         Foreground="{DynamicResource PrimaryTextBrush}"
                         BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
-                        CornerRadius="4"
                         FontSize="13" Cursor="Hand"
                         Margin="0,0,8,0"
                         Click="CancelButton_Click"/>
@@ -73,7 +72,6 @@
                         Background="{DynamicResource AccentBrush}"
                         Foreground="White"
                         BorderThickness="0"
-                        CornerRadius="4"
                         FontSize="13" Cursor="Hand"
                         Click="OkButton_Click"/>
             </StackPanel>

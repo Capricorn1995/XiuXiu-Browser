@@ -24,7 +24,7 @@ public class DownloadStatusToIconConverter : IValueConverter
         {
             return status switch
             {
-                DownloadStatus.Pending => "⏳",     // 沙漏 - 等待中
+                DownloadStatus.Queued => "⏳",     // 沙漏 - 等待中
                 DownloadStatus.Downloading => "⬇",   // 向下箭头 - 下载中
                 DownloadStatus.Paused => "⏸",       // 暂停符号 - 已暂停
                 DownloadStatus.Completed => "✓",     // 对勾 - 已完成

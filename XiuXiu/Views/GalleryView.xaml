@@ -13,117 +13,9 @@
         KeyDown="Window_KeyDown">
 
     <Window.Resources>
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
-    </Window.Resources>
-
-    <!-- 主布局：图片显示区 + 底部控制栏 -->
-    <Grid>
-        <!-- 图片显示区域 -->
-        <Grid x:Name="ImageContainer"
-              Background="Black"
-              ClipToBounds="True"
-              MouseWheel="ImageContainer_MouseWheel"
-              MouseLeftButtonDown="ImageContainer_MouseLeftButtonDown"
-              MouseMove="ImageContainer_MouseMove"
-              MouseLeftButtonUp="ImageContainer_MouseLeftButtonUp">
-            <Grid.RenderTransform>
-                <TransformGroup>
-                    <ScaleTransform x:Name="ImageScale" ScaleX="1" ScaleY="1"/>
-                    <TranslateTransform x:Name="ImageTranslate" X="0" Y="0"/>
-                </TransformGroup>
-            </Grid.RenderTransform>
-
-            <Image x:Name="GalleryImage"
-                   Source="{Binding CurrentItem.Url}"
-                   Stretch="Uniform"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   RenderOptions.BitmapScalingMode="HighQuality"/>
-
-            <!-- 加载中提示 -->
-            <TextBlock x:Name="LoadingText"
-                       Text="加载中..."
-                       Foreground="#888888"
-                       FontSize="16"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Visibility="Collapsed"/>
-        </Grid>
-
-        <!-- 底部控制栏（自动隐藏） -->
-        <Border x:Name="ControlBar"
-                VerticalAlignment="Bottom"
-                Background="#CC000000"
-                Padding="16,8"
-                Height="64">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>   <!-- 上一张 -->
-                    <ColumnDefinition Width="*"/>      <!-- 位置指示 -->
-                    <ColumnDefinition Width="Auto"/>   <!-- 下一张 -->
-                    <ColumnDefinition Width="Auto"/>   <!-- 缩放控制 -->
-                    <ColumnDefinition Width="Auto"/>   <!-- 下载 -->
-                    <ColumnDefinition Width="Auto"/>   <!-- 关闭 -->
-                </Grid.ColumnDefinitions>
-
-                <!-- 上一张按钮 -->
-                <Button Grid.Column="0" Content="◀ 上一张"
-                        Style="{StaticResource GalleryControlButton}"
-                        Command="{Binding PreviousCommand}"
-                        ToolTip="上一张 (←)"/>
-
-                <!-- 位置指示器 -->
-                <TextBlock Grid.Column="1" Text="{Binding PositionText}"
-                           Foreground="White" FontSize="14"
-                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                           FontWeight="SemiBold"/>
-
-                <!-- 下一张按钮 -->
-                <Button Grid.Column="2" Content="下一张 ▶"
-                        Style="{StaticResource GalleryControlButton}"
-                        Command="{Binding NextCommand}"
-                        ToolTip="下一张 (→)"/>
-
-                <!-- 缩放控制 -->
-                <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="24,0">
-                    <Button Content="−" Width="32" Height="32"
-                            Style="{StaticResource GalleryControlButton}"
-                            Command="{Binding ZoomOutCommand}"
-                            ToolTip="缩小 (Ctrl+-)"/>
-                    <TextBlock Text="{Binding ZoomLevel, StringFormat='{}{0:0%}'}"
-                               Foreground="White" FontSize="12"
-                               VerticalAlignment="Center" Margin="8,0" Width="40"
-                               TextAlignment="Center"/>
-                    <Button Content="+" Width="32" Height="32"
-                            Style="{StaticResource GalleryControlButton}"
-                            Command="{Binding ZoomInCommand}"
-                            ToolTip="放大 (Ctrl++)"/>
-                    <Button Content="↺" Width="32" Height="32"
-                            Style="{StaticResource GalleryControlButton}"
-                            Command="{Binding ResetZoomCommand}"
-                            ToolTip="重置缩放"
-                            Margin="4,0,0,0"/>
-                </StackPanel>
-
-                <!-- 下载按钮 -->
-                <Button Grid.Column="4" Content="⬇ 下载"
-                        Style="{StaticResource GalleryControlButton}"
-                        Command="{Binding DownloadCurrentCommand}"
-                        ToolTip="下载当前图片 (Ctrl+S)"
-                        Margin="16,0,0,0"/>
-
-                <!-- 关闭按钮 -->
-                <Button Grid.Column="5" Content="✕ 关闭"
-                        Style="{StaticResource GalleryControlButton}"
-                        Click="CloseButton_Click"
-                        ToolTip="关闭 (Esc)"
-                        Margin="8,0,0,0"/>
-            </Grid>
-        </Border>
-    </Grid>
-
-    <Window.Resources>
         <ResourceDictionary>
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+
             <!-- 图库控制按钮样式 -->
             <Style x:Key="GalleryControlButton" TargetType="Button">
                 <Setter Property="Background" Value="Transparent"/>
@@ -150,4 +42,53 @@
             </Style>
         </ResourceDictionary>
     </Window.Resources>
+
+    <Grid>
+        <!-- 图片容器 -->
+        <Border x:Name="ImageContainer"
+                Background="Transparent"
+                MouseWheel="ImageContainer_MouseWheel"
+                MouseLeftButtonDown="ImageContainer_MouseLeftButtonDown"
+                MouseMove="ImageContainer_MouseMove"
+                MouseLeftButtonUp="ImageContainer_MouseLeftButtonUp">
+            <Image x:Name="GalleryImage"
+                   Source="{Binding CurrentImagePath}"
+                   Stretch="Uniform"
+                   RenderTransformOrigin="0.5,0.5">
+                <Image.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleX="{Binding ZoomLevel}"
+                                        ScaleY="{Binding ZoomLevel}"/>
+                        <TranslateTransform x:Name="ImageTranslate"/>
+                    </TransformGroup>
+                </Image.RenderTransform>
+            </Image>
+        </Border>
+
+        <!-- 控制栏 -->
+        <StackPanel x:Name="ControlBar"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,0,20">
+            <Button Content="Previous"
+                    Style="{StaticResource GalleryControlButton}"
+                    Command="{Binding PreviousCommand}"/>
+            <Button Content="Next"
+                    Style="{StaticResource GalleryControlButton}"
+                    Command="{Binding NextCommand}"/>
+            <Button Content="Zoom In"
+                    Style="{StaticResource GalleryControlButton}"
+                    Command="{Binding ZoomInCommand}"/>
+            <Button Content="Zoom Out"
+                    Style="{StaticResource GalleryControlButton}"
+                    Command="{Binding ZoomOutCommand}"/>
+            <Button Content="Reset"
+                    Style="{StaticResource GalleryControlButton}"
+                    Command="{Binding ResetZoomCommand}"/>
+            <Button Content="Close"
+                    Style="{StaticResource GalleryControlButton}"
+                    Click="CloseButton_Click"/>
+        </StackPanel>
+    </Grid>
 </Window>

@@ -61,7 +61,6 @@ public partial class App : Application
             {
                 // ===== 注册数据库 =====
                 services.AddSingleton<Data.AppDbContext>();
-                services.AddSingleton<Data.DatabaseInitializer>();
 
                 // ===== 注册服务（接口 → 实现） =====
                 // 所有核心服务使用单例模式，在应用生命周期内共享
@@ -102,8 +101,8 @@ public partial class App : Application
         await _host.StartAsync();
 
         // 初始化数据库
-        var dbInitializer = _host.Services.GetRequiredService<Data.DatabaseInitializer>();
-        await dbInitializer.InitializeAsync();
+        var dbContext = _host.Services.GetRequiredService<Data.AppDbContext>();
+        Data.DatabaseInitializer.Initialize(dbContext);
 
         // 加载用户设置并应用主题
         var settingsService = _host.Services.GetRequiredService<ISettingsService>();

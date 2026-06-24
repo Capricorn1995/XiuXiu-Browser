@@ -1,6 +1,8 @@
 // 设置 ViewModel
 // 管理应用程序各项设置的用户界面交互
 // 包括搜索引擎、主题、下载路径、主页和隐私设置
+using System.Windows.Forms;
+
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 

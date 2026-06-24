@@ -48,6 +48,7 @@
 
         <!-- ===== 下载列表 ===== -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid>
             <ItemsControl ItemsSource="{Binding Downloads}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type models:DownloadItem}">
@@ -206,6 +207,7 @@
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
                        Margin="0,40,0,0"/>
+            </Grid>
         </ScrollViewer>
 
         <!-- ===== 底部 ===== -->

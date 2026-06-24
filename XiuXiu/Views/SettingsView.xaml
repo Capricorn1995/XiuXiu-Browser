@@ -95,23 +95,23 @@
             <!-- 强调色选择 -->
             <TextBlock Text="强调色" Style="{StaticResource SettingLabelStyle}" Margin="0,8,0,4"/>
             <StackPanel Orientation="Horizontal">
-                <Button Width="24" Height="24" Background="#319FDE" BorderThickness="0" CornerRadius="12"
+                <Button Width="24" Height="24" Background="#319FDE" BorderThickness="0"
                         Margin="0,0,6,0" Cursor="Hand"
                         Command="{Binding SaveSettingsCommand}"
                         ToolTip="蓝色"/>
-                <Button Width="24" Height="24" Background="#E91E63" BorderThickness="0" CornerRadius="12"
+                <Button Width="24" Height="24" Background="#E91E63" BorderThickness="0"
                         Margin="0,0,6,0" Cursor="Hand"
                         Command="{Binding SaveSettingsCommand}"
                         ToolTip="粉色"/>
-                <Button Width="24" Height="24" Background="#4CAF50" BorderThickness="0" CornerRadius="12"
+                <Button Width="24" Height="24" Background="#4CAF50" BorderThickness="0"
                         Margin="0,0,6,0" Cursor="Hand"
                         Command="{Binding SaveSettingsCommand}"
                         ToolTip="绿色"/>
-                <Button Width="24" Height="24" Background="#FF9800" BorderThickness="0" CornerRadius="12"
+                <Button Width="24" Height="24" Background="#FF9800" BorderThickness="0"
                         Margin="0,0,6,0" Cursor="Hand"
                         Command="{Binding SaveSettingsCommand}"
                         ToolTip="橙色"/>
-                <Button Width="24" Height="24" Background="#9C27B0" BorderThickness="0" CornerRadius="12"
+                <Button Width="24" Height="24" Background="#9C27B0" BorderThickness="0"
                         Cursor="Hand"
                         Command="{Binding SaveSettingsCommand}"
                         ToolTip="紫色"/>

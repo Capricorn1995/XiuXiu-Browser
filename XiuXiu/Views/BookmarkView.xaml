@@ -57,82 +57,84 @@
 
         <!-- ===== 书签列表 ===== -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Bookmarks}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type models:BookmarkItem}">
-                        <!-- 单个书签项 -->
-                        <Border Padding="12,8"
-                                BorderBrush="{DynamicResource BorderBrush}"
-                                BorderThickness="0,0,0,1"
-                                Cursor="Hand"
-                                MouseLeftButtonDown="BookmarkItem_MouseLeftButtonDown"
-                                Tag="{Binding}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>  <!-- 图标 -->
-                                    <ColumnDefinition Width="*"/>     <!-- 详情 -->
-                                    <ColumnDefinition Width="Auto"/>  <!-- 删除按钮 -->
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
+            <Grid>
+                <ItemsControl ItemsSource="{Binding Bookmarks}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:BookmarkItem}">
+                            <!-- 单个书签项 -->
+                            <Border Padding="12,8"
+                                    BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="0,0,0,1"
+                                    Cursor="Hand"
+                                    MouseLeftButtonDown="BookmarkItem_MouseLeftButtonDown"
+                                    Tag="{Binding}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>  <!-- 图标 -->
+                                        <ColumnDefinition Width="*"/>     <!-- 详情 -->
+                                        <ColumnDefinition Width="Auto"/>  <!-- 删除按钮 -->
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
 
-                                <!-- 网站图标 -->
-                                <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
-                                       Width="20" Height="20"
-                                       Source="{Binding FaviconUrl}"
-                                       VerticalAlignment="Center" Margin="0,0,8,0"
-                                       Stretch="Uniform"/>
+                                    <!-- 网站图标 -->
+                                    <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
+                                           Width="20" Height="20"
+                                           Source="{Binding FaviconUrl}"
+                                           VerticalAlignment="Center" Margin="0,0,8,0"
+                                           Stretch="Uniform"/>
 
-                                <!-- 书签标题 -->
-                                <TextBlock Grid.Row="0" Grid.Column="1"
-                                           Text="{Binding Title}"
-                                           Foreground="{DynamicResource PrimaryTextBrush}"
-                                           FontSize="13" FontWeight="SemiBold"
-                                           TextTrimming="CharacterEllipsis"
-                                           ToolTip="{Binding Title}"/>
-
-                                <!-- URL 和文件夹标签 -->
-                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,2,0,0">
-                                    <TextBlock Text="{Binding Url}"
-                                               Foreground="{DynamicResource SecondaryTextBrush}"
-                                               FontSize="11"
+                                    <!-- 书签标题 -->
+                                    <TextBlock Grid.Row="0" Grid.Column="1"
+                                               Text="{Binding Title}"
+                                               Foreground="{DynamicResource PrimaryTextBrush}"
+                                               FontSize="13" FontWeight="SemiBold"
                                                TextTrimming="CharacterEllipsis"
-                                               MaxWidth="200"
-                                               ToolTip="{Binding Url}"/>
+                                               ToolTip="{Binding Title}"/>
 
-                                    <!-- 文件夹标签 -->
-                                    <Border Background="{DynamicResource AccentBrush}" CornerRadius="2"
-                                            Padding="4,1" Margin="6,0,0,0"
-                                            Visibility="{Binding Folder, Converter={StaticResource BoolToVisibility}}">
-                                        <TextBlock Text="{Binding Folder}"
-                                                   Foreground="White" FontSize="9"/>
-                                    </Border>
-                                </StackPanel>
+                                    <!-- URL 和文件夹标签 -->
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,2,0,0">
+                                        <TextBlock Text="{Binding Url}"
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"
+                                                   FontSize="11"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   MaxWidth="200"
+                                                   ToolTip="{Binding Url}"/>
 
-                                <!-- 删除按钮 -->
-                                <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
-                                        Content="✕" Width="24" Height="24"
-                                        Background="Transparent" Foreground="{DynamicResource SecondaryTextBrush}"
-                                        BorderThickness="0" FontSize="12" Cursor="Hand"
-                                        Click="DeleteBookmark_Click"
-                                        Tag="{Binding}"
-                                        ToolTip="删除书签"/>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                                        <!-- 文件夹标签 -->
+                                        <Border Background="{DynamicResource AccentBrush}" CornerRadius="2"
+                                                Padding="4,1" Margin="6,0,0,0"
+                                                Visibility="{Binding Folder, Converter={StaticResource BoolToVisibility}}">
+                                            <TextBlock Text="{Binding Folder}"
+                                                       Foreground="White" FontSize="9"/>
+                                        </Border>
+                                    </StackPanel>
 
-            <!-- 空状态提示 -->
-            <TextBlock x:Name="EmptyState"
-                       Text="暂无书签"
-                       Foreground="{DynamicResource SecondaryTextBrush}"
-                       FontSize="14"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Margin="0,40,0,0"/>
+                                    <!-- 删除按钮 -->
+                                    <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
+                                            Content="✕" Width="24" Height="24"
+                                            Background="Transparent" Foreground="{DynamicResource SecondaryTextBrush}"
+                                            BorderThickness="0" FontSize="12" Cursor="Hand"
+                                            Click="DeleteBookmark_Click"
+                                            Tag="{Binding}"
+                                            ToolTip="删除书签"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- 空状态提示 -->
+                <TextBlock x:Name="EmptyState"
+                           Text="暂无书签"
+                           Foreground="{DynamicResource SecondaryTextBrush}"
+                           FontSize="14"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Margin="0,40,0,0"/>
+            </Grid>
         </ScrollViewer>
 
         <!-- ===== 添加书签按钮 ===== -->
@@ -141,7 +143,7 @@
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
             <Button Height="32" Content="+ 添加当前页面为书签"
                     Background="{DynamicResource AccentBrush}" Foreground="White"
-                    BorderThickness="0" CornerRadius="4" FontSize="13" Cursor="Hand"
+                    BorderThickness="0" FontSize="13" Cursor="Hand"
                     Command="{Binding DataContext.ToggleBookmarkCommand,
                               RelativeSource={RelativeSource AncestorType=Window}}"
                     ToolTip="将当前页面添加到书签 (Ctrl+D)"/>

@@ -23,4 +23,13 @@ public interface ISettingsService
     /// <summary>获取下载文件保存路径</summary>
     /// <returns>下载目录完整路径</returns>
     string GetDownloadPath();
+
+    /// <summary>获取或设置默认搜索引擎</summary>
+    string DefaultSearchEngine { get; set; }
+
+    /// <summary>获取或设置主页 URL</summary>
+    string HomePage { get; set; }
+
+    /// <summary>获取或设置下载路径</summary>
+    string DownloadPath { get; set; }
 }

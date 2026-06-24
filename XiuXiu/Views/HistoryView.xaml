@@ -63,6 +63,7 @@
 
         <!-- ===== 历史记录列表（按日期分组） ===== -->
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <Grid>
             <ItemsControl ItemsSource="{Binding HistoryItems}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type models:HistoryItem}">
@@ -137,6 +138,7 @@
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
                        Margin="0,40,0,0"/>
+            </Grid>
         </ScrollViewer>
     </Grid>
 </UserControl>

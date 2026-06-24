@@ -3,6 +3,7 @@
 // 通过 ConcurrentDictionary 线程安全地管理活跃下载任务
 using System.Collections.Concurrent;
 using System.Net.Http;
+using System.Threading;
 using XiuXiu.Helpers;
 using XiuXiu.Models;
 

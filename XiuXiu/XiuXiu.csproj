@@ -4,24 +4,24 @@
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
-    <ApplicationIcon>Resources/Icons/app.ico</ApplicationIcon>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <AssemblyName>XiuXiu</AssemblyName>
     <RootNamespace>XiuXiu</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.*" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.*" />
-    <PackageReference Include="CommunityToolkit.Wpf.UI.Controls" Version="8.0.*" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.*" />
-    <PackageReference Include="Dapper" Version="2.1.*" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.*" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.*" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.*" />
-    <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.*" />
-    <PackageReference Include="AngleSharp" Version="1.1.*" />
-    <PackageReference Include="System.Drawing.Common" Version="8.0.*" />
-    <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.*" />
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.*" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.13" />
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
+    <PackageReference Include="AngleSharp" Version="1.1.2" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Scripts\MediaExtractor.js" />
