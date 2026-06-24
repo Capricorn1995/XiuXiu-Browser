@@ -1,0 +1,142 @@
+<!-- 嗅嗅浏览器 - 历史记录视图 -->
+<!-- 展示浏览历史记录，支持按日期分组和搜索 -->
+<UserControl x:Class="XiuXiu.Views.HistoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:XiuXiu.Converters"
+             xmlns:models="clr-namespace:XiuXiu.Models"
+             Width="400">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+    </UserControl.Resources>
+
+    <!-- 历史记录面板布局 -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- 头部 -->
+            <RowDefinition Height="Auto"/>  <!-- 搜索 -->
+            <RowDefinition Height="*"/>     <!-- 历史列表 -->
+        </Grid.RowDefinitions>
+
+        <!-- ===== 头部 ===== -->
+        <Border Grid.Row="0" Padding="12,10"
+                Background="{DynamicResource PanelHeaderBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Text="🕐" FontSize="14" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBlock Text="历史记录" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryTextBrush}"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <Button Grid.Column="1" Content="清除全部" FontSize="11"
+                        Background="Transparent" Foreground="#F44336"
+                        BorderThickness="0" Cursor="Hand"
+                        Command="{Binding ClearAllCommand}"
+                        ToolTip="清除所有历史记录"/>
+            </Grid>
+        </Border>
+
+        <!-- ===== 搜索输入框 ===== -->
+        <Border Grid.Row="1" Padding="12,8"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+            <TextBox Height="28"
+                     Background="{DynamicResource InputBackgroundBrush}"
+                     Foreground="{DynamicResource PrimaryTextBrush}"
+                     BorderBrush="{DynamicResource BorderBrush}"
+                     BorderThickness="1"
+                     Padding="8,4" FontSize="12"
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="搜索历史记录">
+                <TextBox.InputBindings>
+                    <KeyBinding Key="Enter" Command="{Binding SearchHistoryCommand}"/>
+                </TextBox.InputBindings>
+            </TextBox>
+        </Border>
+
+        <!-- ===== 历史记录列表（按日期分组） ===== -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding HistoryItems}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type models:HistoryItem}">
+                        <!-- 单个历史记录项 -->
+                        <Border Padding="12,8"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="0,0,0,1"
+                                Cursor="Hand"
+                                MouseLeftButtonDown="HistoryItem_MouseLeftButtonDown"
+                                Tag="{Binding}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>  <!-- 图标 -->
+                                    <ColumnDefinition Width="*"/>     <!-- 详情 -->
+                                    <ColumnDefinition Width="Auto"/>  <!-- 删除 -->
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- 网站图标 -->
+                                <Image Grid.Row="0" Grid.RowSpan="2" Grid.Column="0"
+                                       Width="20" Height="20"
+                                       Source="{Binding FaviconUrl}"
+                                       VerticalAlignment="Center" Margin="0,0,8,0"
+                                       Stretch="Uniform"/>
+
+                                <!-- 页面标题 -->
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                           Text="{Binding Title}"
+                                           Foreground="{DynamicResource PrimaryTextBrush}"
+                                           FontSize="13" FontWeight="SemiBold"
+                                           TextTrimming="CharacterEllipsis"
+                                           ToolTip="{Binding Title}"/>
+
+                                <!-- URL 和访问时间 -->
+                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,2,0,0">
+                                    <TextBlock Text="{Binding Url}"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
+                                               FontSize="11"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxWidth="240"
+                                               ToolTip="{Binding Url}"/>
+
+                                    <TextBlock Text=" · " Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"/>
+
+                                    <TextBlock Text="{Binding VisitedAt, StringFormat='{}{0:MM-dd HH:mm}'}"
+                                               Foreground="{DynamicResource SecondaryTextBrush}"
+                                               FontSize="11"/>
+                                </StackPanel>
+
+                                <!-- 删除按钮 -->
+                                <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
+                                        Content="✕" Width="24" Height="24"
+                                        Background="Transparent" Foreground="{DynamicResource SecondaryTextBrush}"
+                                        BorderThickness="0" FontSize="12" Cursor="Hand"
+                                        Click="DeleteHistory_Click"
+                                        Tag="{Binding}"
+                                        ToolTip="删除此记录"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- 空状态提示 -->
+            <TextBlock x:Name="EmptyState"
+                       Text="暂无历史记录"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
+                       FontSize="14"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="0,40,0,0"/>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

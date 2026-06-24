@@ -1,0 +1,49 @@
+<!-- 嗅嗅浏览器 - 浏览器标签页视图 -->
+<!-- UserControl 包含 WebView2 控件，用于渲染网页内容 -->
+<UserControl x:Class="XiuXiu.Views.BrowserTabView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:XiuXiu.Converters"
+             xmlns:wpf="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf">
+
+    <!-- 资源 -->
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+    </UserControl.Resources>
+
+    <!-- 主布局：WebView2 填充整个区域，加载时显示进度条叠加层 -->
+    <Grid>
+        <!-- WebView2 浏览器控件 -->
+        <wpf:WebView2 x:Name="BrowserWebView"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"/>
+
+        <!-- 加载进度条叠加层 -->
+        <Border VerticalAlignment="Top" Height="3"
+                Background="Transparent"
+                Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}">
+            <ProgressBar Height="3"
+                         Minimum="0" Maximum="100"
+                         Value="{Binding LoadingProgress}"
+                         Foreground="{DynamicResource AccentBrush}"
+                         Background="Transparent"
+                         IsIndeterminate="{Binding IsLoading}"/>
+        </Border>
+
+        <!-- 新标签页欢迎界面（当 URL 为空时显示） -->
+        <Grid x:Name="NewTabOverlay"
+              Visibility="Visible"
+              Background="{DynamicResource CardBackgroundBrush}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <TextBlock Text="🔍" FontSize="48" HorizontalAlignment="Center"
+                           Margin="0,0,0,16"/>
+                <TextBlock Text="嗅嗅浏览器" FontSize="24" FontWeight="SemiBold"
+                           Foreground="{DynamicResource PrimaryTextBrush}"
+                           HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                <TextBlock Text="输入网址开始浏览，或使用"嗅一嗅"功能提取媒体资源"
+                           FontSize="14" Foreground="{DynamicResource SecondaryTextBrush}"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

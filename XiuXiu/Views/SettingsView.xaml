@@ -1,0 +1,208 @@
+<!-- 嗅嗅浏览器 - 设置视图 -->
+<!-- 管理应用各项配置：搜索引擎、外观、下载、主页和隐私设置 -->
+<UserControl x:Class="XiuXiu.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:XiuXiu.Converters"
+             xmlns:models="clr-namespace:XiuXiu.Models"
+             Width="420">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+
+        <!-- 设置项标题样式 -->
+        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="Margin" Value="0,16,0,8"/>
+        </Style>
+
+        <!-- 设置项标签样式 -->
+        <Style x:Key="SettingLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
+        </Style>
+
+        <!-- 设置输入框样式 -->
+        <Style x:Key="SettingTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+
+        <!-- 设置按钮样式 -->
+        <Style x:Key="SettingButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="MinWidth" Value="60"/>
+            <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- 设置面板布局 -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="16,12">
+            <!-- ===== 标题 ===== -->
+            <TextBlock Text="⚙ 设置" FontSize="18" FontWeight="Bold"
+                       Foreground="{DynamicResource PrimaryTextBrush}" Margin="0,0,0,12"/>
+
+            <!-- ===== 1. 搜索引擎 ===== -->
+            <TextBlock Text="🔍 搜索引擎" Style="{StaticResource SectionTitleStyle}"/>
+
+            <Grid Margin="0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="默认搜索引擎" Style="{StaticResource SettingLabelStyle}"/>
+                <ComboBox Grid.Column="1" Height="28"
+                          ItemsSource="{Binding SearchEngines}"
+                          SelectedItem="{Binding SelectedSearchEngine}"
+                          DisplayMemberPath="Name"
+                          Background="{DynamicResource InputBackgroundBrush}"
+                          Foreground="{DynamicResource PrimaryTextBrush}"
+                          BorderBrush="{DynamicResource BorderBrush}"
+                          FontSize="13"/>
+            </Grid>
+
+            <!-- ===== 2. 外观 ===== -->
+            <TextBlock Text="🎨 外观" Style="{StaticResource SectionTitleStyle}"/>
+
+            <!-- 主题选择 -->
+            <TextBlock Text="主题模式" Style="{StaticResource SettingLabelStyle}" Margin="0,4"/>
+            <StackPanel Orientation="Horizontal" Margin="0,4">
+                <RadioButton Content="浅色" Margin="0,0,16,0"
+                             IsChecked="{Binding SelectedTheme, Converter={StaticResource BoolToVisibility}}"
+                             GroupName="Theme"/>
+                <RadioButton Content="深色" Margin="0,0,16,0"
+                             GroupName="Theme"/>
+                <RadioButton Content="跟随系统" IsChecked="True" GroupName="Theme"/>
+            </StackPanel>
+
+            <!-- 强调色选择 -->
+            <TextBlock Text="强调色" Style="{StaticResource SettingLabelStyle}" Margin="0,8,0,4"/>
+            <StackPanel Orientation="Horizontal">
+                <Button Width="24" Height="24" Background="#319FDE" BorderThickness="0" CornerRadius="12"
+                        Margin="0,0,6,0" Cursor="Hand"
+                        Command="{Binding SaveSettingsCommand}"
+                        ToolTip="蓝色"/>
+                <Button Width="24" Height="24" Background="#E91E63" BorderThickness="0" CornerRadius="12"
+                        Margin="0,0,6,0" Cursor="Hand"
+                        Command="{Binding SaveSettingsCommand}"
+                        ToolTip="粉色"/>
+                <Button Width="24" Height="24" Background="#4CAF50" BorderThickness="0" CornerRadius="12"
+                        Margin="0,0,6,0" Cursor="Hand"
+                        Command="{Binding SaveSettingsCommand}"
+                        ToolTip="绿色"/>
+                <Button Width="24" Height="24" Background="#FF9800" BorderThickness="0" CornerRadius="12"
+                        Margin="0,0,6,0" Cursor="Hand"
+                        Command="{Binding SaveSettingsCommand}"
+                        ToolTip="橙色"/>
+                <Button Width="24" Height="24" Background="#9C27B0" BorderThickness="0" CornerRadius="12"
+                        Cursor="Hand"
+                        Command="{Binding SaveSettingsCommand}"
+                        ToolTip="紫色"/>
+            </StackPanel>
+
+            <!-- ===== 3. 下载设置 ===== -->
+            <TextBlock Text="⬇ 下载" Style="{StaticResource SectionTitleStyle}"/>
+
+            <Grid Margin="0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="保存路径" Style="{StaticResource SettingLabelStyle}"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingTextBoxStyle}"
+                         Text="{Binding DownloadPath, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="下载文件保存目录"/>
+                <Button Grid.Column="2" Content="浏览" Style="{StaticResource SettingButtonStyle}"
+                        Margin="6,0,0,0"
+                        Command="{Binding BrowseDownloadPathCommand}"
+                        ToolTip="选择下载目录"/>
+            </Grid>
+
+            <!-- ===== 4. 主页设置 ===== -->
+            <TextBlock Text="🏠 主页" Style="{StaticResource SectionTitleStyle}"/>
+
+            <Grid Margin="0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="主页地址" Style="{StaticResource SettingLabelStyle}"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SettingTextBoxStyle}"
+                         Text="{Binding HomePage, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="新建标签页时打开的页面 URL"/>
+            </Grid>
+
+            <!-- ===== 5. 隐私设置 ===== -->
+            <TextBlock Text="🔒 隐私" Style="{StaticResource SectionTitleStyle}"/>
+
+            <StackPanel Margin="0,4">
+                <CheckBox Content="退出时自动清除浏览历史"
+                          IsChecked="{Binding Settings.ClearHistoryOnExit}"
+                          Foreground="{DynamicResource PrimaryTextBrush}"
+                          FontSize="13" Margin="0,4"/>
+
+                <Button Content="清除所有数据" Style="{StaticResource SettingButtonStyle}"
+                        HorizontalAlignment="Left" Margin="0,8,0,0"
+                        Foreground="#F44336"
+                        Command="{Binding ClearAllDataCommand}"
+                        ToolTip="清除历史记录和缓存数据"/>
+            </StackPanel>
+
+            <!-- ===== 6. 关于 ===== -->
+            <TextBlock Text="ℹ 关于" Style="{StaticResource SectionTitleStyle}"/>
+
+            <Border Background="{DynamicResource CardBackgroundBrush}"
+                    CornerRadius="8" Padding="16,12" Margin="0,4">
+                <StackPanel>
+                    <TextBlock Text="嗅嗅浏览器 v2.0.0" FontSize="16" FontWeight="Bold"
+                               Foreground="{DynamicResource PrimaryTextBrush}"/>
+                    <TextBlock Text="基于 WPF .NET 8 和 WebView2 构建" FontSize="12"
+                               Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,4,0,0"/>
+                    <TextBlock Text="灵感来源于 iOS 平台「嗅嗅浏览器」App" FontSize="12"
+                               Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2,0,0"/>
+                    <TextBlock Text="一款专注于媒体资源嗅探的桌面浏览器" FontSize="12"
+                               Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2,0,0"/>
+
+                    <!-- 分隔线 -->
+                    <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,12"/>
+
+                    <!-- 操作按钮 -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+                        <Button Content="恢复默认设置" Style="{StaticResource SettingButtonStyle}"
+                                Margin="0,0,8,0"
+                                Command="{Binding ResetDefaultsCommand}"
+                                ToolTip="将所有设置恢复为默认值"/>
+                        <Button Content="保存设置" Style="{StaticResource SettingButtonStyle}"
+                                Background="{DynamicResource AccentBrush}" Foreground="White"
+                                BorderThickness="0"
+                                Command="{Binding SaveSettingsCommand}"
+                                ToolTip="保存当前设置"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- 底部间距 -->
+            <Border Height="20"/>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

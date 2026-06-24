@@ -1,0 +1,182 @@
+<!-- 嗅嗅浏览器 - 主窗口视图 -->
+<!-- 定义浏览器的主界面布局，包含地址栏、标签页区域和侧边栏面板 -->
+<Window x:Class="XiuXiu.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:XiuXiu.Converters"
+        Title="嗅嗅浏览器"
+        Height="800"
+        Width="1280"
+        MinHeight="600"
+        MinWidth="900"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource WindowBackgroundBrush}">
+
+    <!-- 转换器资源 -->
+    <Window.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+        <converters:InverseBoolConverter x:Key="InverseBool"/>
+    </Window.Resources>
+
+    <!-- 主布局：地址栏 + 标签页 + 内容区 + 状态栏 -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>   <!-- 标题栏/菜单 -->
+            <RowDefinition Height="Auto"/>   <!-- 地址栏 -->
+            <RowDefinition Height="Auto"/>   <!-- 标签页栏 -->
+            <RowDefinition Height="*"/>      <!-- 主内容区 -->
+            <RowDefinition Height="Auto"/>   <!-- 状态栏 -->
+        </Grid.RowDefinitions>
+
+        <!-- 顶部工具栏 -->
+        <Border Grid.Row="0"
+                Background="{StaticResource PanelBackgroundBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="8,4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 导航按钮组 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Button Style="{StaticResource NavigationButtonStyle}"
+                            Command="{Binding GoBackCommand}" Content="◀"
+                            ToolTip="后退"/>
+                    <Button Style="{StaticResource NavigationButtonStyle}"
+                            Command="{Binding GoForwardCommand}" Content="▶"
+                            ToolTip="前进"/>
+                    <Button Style="{StaticResource NavigationButtonStyle}"
+                            Command="{Binding RefreshCommand}" Content="↻"
+                            ToolTip="刷新"/>
+                </StackPanel>
+
+                <!-- 地址栏 -->
+                <Grid Grid.Column="1" Margin="8,0">
+                    <TextBox Style="{StaticResource AddressBarTextBoxStyle}"
+                             Text="{Binding AddressBarUrl, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding NavigateToUrlCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+                </Grid>
+
+                <!-- 工具栏按钮组 -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Style="{StaticResource ToolbarButtonStyle}"
+                            Command="{Binding ToggleBookmarkPanelCommand}" Content="★"
+                            ToolTip="书签"/>
+                    <Button Style="{StaticResource ToolbarButtonStyle}"
+                            Command="{Binding ToggleDownloadPanelCommand}" Content="⬇"
+                            ToolTip="下载"/>
+                    <Button Style="{StaticResource ToolbarButtonStyle}"
+                            Command="{Binding ToggleMediaPanelCommand}" Content="🖼"
+                            ToolTip="媒体提取"/>
+                    <Button Style="{StaticResource ToolbarButtonStyle}"
+                            Command="{Binding ToggleHistoryPanelCommand}" Content="🕐"
+                            ToolTip="历史记录"/>
+                    <Button Style="{StaticResource ToolbarButtonStyle}"
+                            Command="{Binding ToggleSettingsPanelCommand}" Content="⚙"
+                            ToolTip="设置"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 标签页栏 -->
+        <Border Grid.Row="2"
+                Background="{StaticResource PanelBackgroundBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 标签页列表 -->
+                <ListBox Grid.Column="0"
+                         ItemsSource="{Binding Tabs}"
+                         Background="Transparent"
+                         BorderThickness="0">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource CardBorderStyle}"
+                                    Margin="2,0"
+                                    Padding="8,4"
+                                    CornerRadius="4,4,0,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Title}"
+                                               Style="{StaticResource SecondaryTextStyle}"
+                                               MaxWidth="150"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <Button Content="✕"
+                                            Style="{StaticResource DownloadButtonStyle}"
+                                            Width="16" Height="16"
+                                            FontSize="8"
+                                            Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="4,0,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- 新建标签页按钮 -->
+                <Button Grid.Column="1"
+                        Style="{StaticResource ToolbarButtonStyle}"
+                        Command="{Binding AddNewTabCommand}" Content="+"
+                        ToolTip="新建标签页" Margin="4,0"/>
+            </Grid>
+        </Border>
+
+        <!-- 主内容区 -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- WebView 内容区域 -->
+            <Border Grid.Column="0"
+                    Background="{StaticResource CardBackgroundBrush}">
+                <TextBlock Text="WebView2 内容区域 - 浏览器核心渲染区"
+                           Style="{StaticResource PrimaryTextStyle}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+            </Border>
+
+            <!-- 侧边栏面板容器 -->
+            <Border Grid.Column="1"
+                    Width="300"
+                    Background="{StaticResource PanelBackgroundBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1,0,0,0"
+                    Visibility="{Binding IsMediaPanelVisible, Converter={StaticResource BoolToVisibility}}">
+                <TextBlock Text="媒体面板"
+                           Style="{StaticResource SecondaryTextStyle}"
+                           Margin="12"/>
+            </Border>
+        </Grid>
+
+        <!-- 状态栏 -->
+        <Border Grid.Row="4"
+                Background="{StaticResource PanelBackgroundBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="8,4">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding PageTitle}"
+                           Style="{StaticResource SecondaryTextStyle}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

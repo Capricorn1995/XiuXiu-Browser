@@ -1,0 +1,70 @@
+<!-- 嗅嗅浏览器 - 浅色主题资源字典 -->
+<!-- 定义浅色模式下的所有颜色和画刷资源 -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ===== 颜色定义 ===== -->
+    <!-- 窗口背景色：浅灰白，提供柔和的视觉体验 -->
+    <Color x:Key="WindowBackgroundColor">#F3F3F3</Color>
+    <!-- 卡片/控件背景色：纯白，用于面板、卡片等容器 -->
+    <Color x:Key="CardBackgroundColor">#FFFFFF</Color>
+    <!-- 面板背景色：极浅灰，用于侧边栏等区域 -->
+    <Color x:Key="PanelBackgroundColor">#FAFAFA</Color>
+    <!-- 主要文本颜色：深黑，用于标题和正文 -->
+    <Color x:Key="TextPrimaryColor">#1A1A1A</Color>
+    <!-- 次要文本颜色：中灰，用于描述、辅助信息 -->
+    <Color x:Key="TextSecondaryColor">#666666</Color>
+    <!-- 强调色：iOS 经典蓝色，用于选中态、链接、按钮 -->
+    <Color x:Key="AccentColor">#319FDE</Color>
+    <!-- 边框颜色：浅灰，用于分割线和边框 -->
+    <Color x:Key="BorderBrushColor">#E0E0E0</Color>
+
+    <!-- 补充颜色 -->
+    <!-- 悬停背景色 -->
+    <Color x:Key="HoverBackgroundColor">#E8F4FD</Color>
+    <!-- 按下背景色 -->
+    <Color x:Key="PressedBackgroundColor">#D0E8F8</Color>
+    <!-- 危险/错误颜色 -->
+    <Color x:Key="DangerColor">#E74C3C</Color>
+    <!-- 成功颜色 -->
+    <Color x:Key="SuccessColor">#27AE60</Color>
+    <!-- 警告颜色 -->
+    <Color x:Key="WarningColor">#F39C12</Color>
+
+    <!-- ===== 画刷定义 ===== -->
+    <!-- 窗口背景画刷 -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}"/>
+    <!-- 卡片背景画刷 -->
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackgroundColor}"/>
+    <!-- 面板背景画刷 -->
+    <SolidColorBrush x:Key="PanelBackgroundBrush" Color="{StaticResource PanelBackgroundColor}"/>
+    <!-- 主要文本画刷 -->
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <!-- 次要文本画刷 -->
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
+    <!-- 强调色画刷 -->
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+    <!-- 边框画刷 -->
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderBrushColor}"/>
+
+    <!-- 补充画刷 -->
+    <SolidColorBrush x:Key="HoverBackgroundBrush" Color="{StaticResource HoverBackgroundColor}"/>
+    <SolidColorBrush x:Key="PressedBackgroundBrush" Color="{StaticResource PressedBackgroundColor}"/>
+    <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}"/>
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}"/>
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
+
+    <!-- 语义别名画刷（保持向后兼容） -->
+    <SolidColorBrush x:Key="PrimaryTextBrush" Color="{StaticResource TextPrimaryColor}"/>
+    <SolidColorBrush x:Key="SecondaryTextBrush" Color="{StaticResource TextSecondaryColor}"/>
+    <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverBackgroundColor}"/>
+    <SolidColorBrush x:Key="InputBackgroundBrush" Color="#F5F5F5"/>
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#2B8AC5"/>
+    <SolidColorBrush x:Key="DisabledTextBrush" Color="#BBBBBB"/>
+    <SolidColorBrush x:Key="PanelHeaderBrush" Color="#F0F0F0"/>
+    <SolidColorBrush x:Key="TitleBarBrush" Color="#F0F0F0"/>
+
+    <!-- 透明画刷 -->
+    <SolidColorBrush x:Key="TransparentBrush" Color="Transparent"/>
+
+</ResourceDictionary>

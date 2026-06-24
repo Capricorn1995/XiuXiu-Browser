@@ -1,0 +1,206 @@
+<!-- 嗅嗅浏览器 - 媒体面板视图 -->
+<!-- 侧边栏面板，展示嗅探到的媒体资源缩略图网格 -->
+<UserControl x:Class="XiuXiu.Views.MediaPanelView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:XiuXiu.Converters"
+             xmlns:models="clr-namespace:XiuXiu.Models"
+             Width="320">
+
+    <UserControl.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+
+        <!-- 分段按钮样式 -->
+        <Style x:Key="SegmentButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="MinWidth" Value="48"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{DynamicResource HoverBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ActiveSegmentButtonStyle" TargetType="Button" BasedOn="{StaticResource SegmentButtonStyle}">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- 主布局：头部 + 筛选区 + 网格 + 底部按钮 -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>  <!-- 头部 -->
+            <RowDefinition Height="Auto"/>  <!-- 筛选区 -->
+            <RowDefinition Height="*"/>     <!-- 缩略图网格 -->
+            <RowDefinition Height="Auto"/>  <!-- 底部操作区 -->
+        </Grid.RowDefinitions>
+
+        <!-- ===== 头部：标题和关闭按钮 ===== -->
+        <Border Grid.Row="0" Padding="12,10"
+                Background="{DynamicResource PanelHeaderBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Text="🔍" FontSize="14" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <TextBlock FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource PrimaryTextBrush}"
+                               VerticalAlignment="Center">
+                        <Run Text="找到 "/>
+                        <Run Text="{Binding ExtractedCount, StringFormat={}{0}}"/>
+                        <Run Text=" 个资源"/>
+                    </TextBlock>
+                </StackPanel>
+
+                <Button Grid.Column="1" Content="✕" Width="24" Height="24"
+                        Background="Transparent" Foreground="{DynamicResource SecondaryTextBrush}"
+                        BorderThickness="0" FontSize="12" Cursor="Hand"
+                        Command="{Binding DataContext.ToggleMediaPanelCommand,
+                                  RelativeSource={RelativeSource AncestorType=Window}}"
+                        ToolTip="关闭面板"/>
+            </Grid>
+        </Border>
+
+        <!-- ===== 筛选区：类型切换和搜索 ===== -->
+        <StackPanel Grid.Row="1" Margin="12,8">
+            <!-- 媒体类型筛选（分段按钮） -->
+            <Border Background="{DynamicResource InputBackgroundBrush}" CornerRadius="6" Padding="2">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Content="全部"
+                            Command="{Binding DataContext.SniffMediaCommand,
+                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="All"
+                            ToolTip="显示全部资源"/>
+                    <Button Grid.Column="1" Content="图片"
+                            Command="{Binding DataContext.SniffMediaCommand,
+                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="Image"
+                            ToolTip="仅显示图片"/>
+                    <Button Grid.Column="2" Content="视频"
+                            Command="{Binding DataContext.SniffMediaCommand,
+                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                            CommandParameter="Video"
+                            ToolTip="仅显示视频"/>
+                </Grid>
+            </Border>
+
+            <!-- 搜索筛选输入框 -->
+            <TextBox Margin="0,8,0,0" Height="28"
+                     Background="{DynamicResource InputBackgroundBrush}"
+                     Foreground="{DynamicResource PrimaryTextBrush}"
+                     BorderBrush="{DynamicResource BorderBrush}"
+                     BorderThickness="1"
+                     Padding="8,4" FontSize="12"
+                     Text="{Binding MediaFilterText, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="按文件名或来源筛选"/>
+        </StackPanel>
+
+        <!-- ===== 缩略图网格区域 ===== -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding ExtractedMedia}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" Margin="4"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type models:MediaItem}">
+                        <!-- 单个缩略图卡片：140x140 -->
+                        <Border Width="140" Height="140" Margin="4"
+                                Background="{DynamicResource CardBackgroundBrush}"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Cursor="Hand">
+                            <Grid>
+                                <!-- 缩略图 -->
+                                <Image Source="{Binding ThumbnailUrl}"
+                                       Stretch="UniformToFill"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+
+                                <!-- 类型图标叠加层（右上角） -->
+                                <Border Background="#88000000" CornerRadius="4"
+                                        Padding="4,2"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Top"
+                                        Margin="4">
+                                    <TextBlock FontSize="10" Foreground="White">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Type}" Value="Image">
+                                                        <Setter Property="Text" Value="🖼"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Type}" Value="Video">
+                                                        <Setter Property="Text" Value="▶"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Border>
+
+                                <!-- 来源元素标签（底部） -->
+                                <Border Background="#88000000" CornerRadius="0,0,6,6"
+                                        VerticalAlignment="Bottom" Padding="4,2">
+                                    <TextBlock Text="{Binding SourceElement}"
+                                               FontSize="9" Foreground="#CCCCCC"
+                                               TextTrimming="CharacterEllipsis"
+                                               ToolTip="{Binding SourceElement}"/>
+                                </Border>
+
+                                <!-- 选中标记 -->
+                                <Border x:Name="SelectedIndicator"
+                                        BorderBrush="{DynamicResource AccentBrush}"
+                                        BorderThickness="0" CornerRadius="6"
+                                        Background="Transparent"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- ===== 底部操作区 ===== -->
+        <Border Grid.Row="3" Padding="12,8"
+                Background="{DynamicResource PanelHeaderBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0">
+            <StackPanel>
+                <!-- 一键下载全部按钮 -->
+                <Button Height="36" Content="⬇ 一键保存全部"
+                        Style="{StaticResource SniffButtonStyle}"
+                        Command="{Binding DownloadAllMediaCommand}"
+                        ToolTip="下载所有已提取的媒体资源"
+                        IsEnabled="{Binding ExtractedCount, Converter={StaticResource BoolToVisibility}}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

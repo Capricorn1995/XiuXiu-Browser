@@ -1,0 +1,20 @@
+<!-- 嗅嗅浏览器 - 应用程序入口 XAML -->
+<!-- 合并全局资源字典，包括主题和样式 -->
+<Application x:Class="XiuXiu.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- 主题资源字典 - 颜色和画刷定义 -->
+                <ResourceDictionary Source="Resources/Themes/LightTheme.xaml"/>
+                <ResourceDictionary Source="Resources/Themes/DarkTheme.xaml"/>
+                <!-- 样式资源字典 - 控件样式 -->
+                <ResourceDictionary Source="Resources/Styles/CommonStyles.xaml"/>
+                <ResourceDictionary Source="Resources/Styles/ButtonStyles.xaml"/>
+                <ResourceDictionary Source="Resources/Styles/TextBoxStyles.xaml"/>
+                <ResourceDictionary Source="Resources/Styles/TabItemStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
