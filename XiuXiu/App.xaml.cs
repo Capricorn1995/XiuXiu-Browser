@@ -36,6 +36,19 @@ public partial class App : Application
 
     public App()
     {
+        // 全局异常捕获 - 防止应用静默崩溃
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+        {
+            string crashLog = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "XiuXiu", "logs", "crash.log");
+            Directory.CreateDirectory(Path.GetDirectoryName(crashLog)!);
+            File.WriteAllText(crashLog,
+                $"[{DateTime.Now}] 未处理异常: {args.ExceptionObject}");
+            MessageBox.Show($"应用发生错误，请查看日志:\n{crashLog}",
+                "嗅嗅浏览器 - 错误", MessageBoxButton.OK, MessageBoxImage.Error);
+        };
+
         // 构建 .NET 通用主机，注册所有服务和 ViewModel
         _host = Host.CreateDefaultBuilder()
             .ConfigureAppConfiguration((context, config) =>

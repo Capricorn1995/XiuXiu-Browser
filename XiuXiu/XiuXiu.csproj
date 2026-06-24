@@ -25,5 +25,8 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Scripts\MediaExtractor.js" />
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
