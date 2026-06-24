@@ -77,6 +77,7 @@ public partial class App : Application
 
                 // ===== 注册服务（接口 → 实现） =====
                 // 所有核心服务使用单例模式，在应用生命周期内共享
+                services.AddSingleton<M3u8DownloadService>();
                 services.AddSingleton<IMediaExtractionService, MediaExtractionService>();
                 services.AddSingleton<IDownloadService, DownloadService>();
                 services.AddSingleton<IBookmarkService, BookmarkService>();

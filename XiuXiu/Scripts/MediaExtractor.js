@@ -67,6 +67,9 @@
         // === 第十二步：检测 canvas 元素（可能是视频帧） ===
         collectCanvasElements(items);
 
+        // === 第十三步：扫描页面源码中的视频URL ===
+        collectVideoUrlsFromSource(items);
+
         // === 去重和过滤 ===
         return deduplicateAndFilter(items);
     }
@@ -431,6 +434,97 @@
                     addItem(items, dataUrl, 'image', 'canvas[frame]', canvas.width, canvas.height);
                 }
             }
+        }
+    }
+
+    /**
+     * 第十三步：扫描页面源码中的视频 URL
+     * - 扫描所有 script 标签内容中的视频 URL 模式
+     * - 扫描页面 HTML 源码中的 m3u8 URL
+     * - 检查常见的视频播放器 data 属性
+     */
+    function collectVideoUrlsFromSource(items) {
+        // 视频 URL 正则：匹配常见的视频格式
+        var videoUrlPattern = /(https?:\/\/[^\s"'<>]+\.(?:mp4|webm|m3u8|flv|mov|avi|mkv|ts|wmv)[^\s"'<>]*)/gi;
+        var m3u8Pattern = /(https?:\/\/[^\s"'<>]+\.m3u8[^\s"'<>]*)/gi;
+
+        // 1. 扫描所有 script 标签内容
+        var scripts = document.querySelectorAll('script');
+        for (var i = 0; i < scripts.length; i++) {
+            var content = scripts[i].textContent || scripts[i].innerHTML || '';
+            if (!content) continue;
+
+            // 扫描视频 URL
+            var matches = content.match(videoUrlPattern);
+            if (matches) {
+                for (var m = 0; m < matches.length; m++) {
+                    var url = matches[m];
+                    var absoluteUrl = resolveUrl(url);
+                    if (absoluteUrl && !isSvgFile(absoluteUrl)) {
+                        var type = /\.(mp4|webm|m3u8|flv|mov|avi|mkv|ts|wmv)/i.test(url) ? 'video' : 'image';
+                        addItem(items, absoluteUrl, type, 'script[content]', 0, 0);
+                    }
+                }
+            }
+
+            // 额外扫描 m3u8 URL（可能被 videoUrlPattern 遗漏）
+            var m3u8Matches = content.match(m3u8Pattern);
+            if (m3u8Matches) {
+                for (var n = 0; n < m3u8Matches.length; n++) {
+                    var m3u8Url = m3u8Matches[n];
+                    var absoluteUrl = resolveUrl(m3u8Url);
+                    if (absoluteUrl) {
+                        addItem(items, absoluteUrl, 'video', 'script[m3u8]', 0, 0);
+                    }
+                }
+            }
+        }
+
+        // 2. 扫描页面完整 HTML 源码中的 m3u8 URL
+        var htmlContent = document.documentElement.outerHTML || '';
+        var htmlM3u8Matches = htmlContent.match(m3u8Pattern);
+        if (htmlM3u8Matches) {
+            for (var j = 0; j < htmlM3u8Matches.length; j++) {
+                var url = htmlM3u8Matches[j];
+                var absoluteUrl = resolveUrl(url);
+                if (absoluteUrl) {
+                    addItem(items, absoluteUrl, 'video', 'html[m3u8]', 0, 0);
+                }
+            }
+        }
+
+        // 3. 检查常见的视频播放器 data 属性
+        var videoDataAttrs = ['data-video-url', 'data-mp4', 'data-src', 'data-url', 'data-video', 'data-source'];
+        for (var a = 0; a < videoDataAttrs.length; a++) {
+            var attrName = videoDataAttrs[a];
+            var elements = document.querySelectorAll('[' + attrName + ']');
+            for (var e = 0; e < elements.length; e++) {
+                var el = elements[e];
+                var value = el.getAttribute(attrName);
+                if (value && !value.startsWith('data:') && !value.startsWith('blob:') && !value.startsWith('#')) {
+                    var absoluteUrl = resolveUrl(value);
+                    if (absoluteUrl && /\.(mp4|webm|m3u8|flv|mov|avi|mkv|ts|wmv)/i.test(absoluteUrl)) {
+                        addItem(items, absoluteUrl, 'video', '[' + attrName + ']', el.offsetWidth || 0, el.offsetHeight || 0);
+                    }
+                }
+            }
+        }
+
+        // 4. 扫描所有文本节点中的视频 URL（仅在 body 可见文本中）
+        try {
+            var bodyText = document.body.innerText || '';
+            var textMatches = bodyText.match(videoUrlPattern);
+            if (textMatches) {
+                for (var t = 0; t < textMatches.length; t++) {
+                    var url = textMatches[t];
+                    var absoluteUrl = resolveUrl(url);
+                    if (absoluteUrl) {
+                        addItem(items, absoluteUrl, 'video', 'text[content]', 0, 0);
+                    }
+                }
+            }
+        } catch (e) {
+            // 忽略文本提取错误
         }
     }
 

@@ -23,6 +23,7 @@ public class DownloadService : IDownloadService
 {
     private readonly HttpClient _httpClient;
     private readonly ISettingsService _settingsService;
+    private readonly M3u8DownloadService _m3u8Service;
 
     // 活跃下载任务字典
     private readonly ConcurrentDictionary<string, DownloadItem> _activeDownloads = new();
@@ -30,9 +31,10 @@ public class DownloadService : IDownloadService
     // 取消令牌字典（key: 下载任务 ID）
     private readonly ConcurrentDictionary<string, CancellationTokenSource> _cancellationTokens = new();
 
-    public DownloadService(ISettingsService settingsService)
+    public DownloadService(ISettingsService settingsService, M3u8DownloadService m3u8Service)
     {
         _settingsService = settingsService;
+        _m3u8Service = m3u8Service;
 
         // 配置 HttpClient 支持重定向和自定义 User-Agent
         _httpClient = new HttpClient(new HttpClientHandler
@@ -191,6 +193,97 @@ public class DownloadService : IDownloadService
             CleanupFailedDownload(item);
         }
     }
+
+    /// <summary>
+    /// 启动视频下载（自动检测 m3u8/mp4 等格式）
+    /// m3u8 使用 M3u8DownloadService，其他格式使用流式下载
+    /// </summary>
+    public async Task<DownloadItem> StartVideoDownloadAsync(string url, IProgress<double>? progress = null)
+    {
+        var downloadItem = new DownloadItem
+        {
+            Url = url,
+            Status = DownloadStatus.Downloading
+        };
+
+        // 生成文件名
+        downloadItem.FileName = FileHelper.GetSafeFileName(url);
+
+        // 如果是 m3u8，输出为 .ts 文件
+        if (IsM3u8Url(url))
+        {
+            string nameWithoutExt = Path.GetFileNameWithoutExtension(downloadItem.FileName);
+            downloadItem.FileName = nameWithoutExt + ".ts";
+        }
+
+        // 确定保存路径
+        string directory = GetDownloadDirectory();
+        downloadItem.FilePath = FileHelper.GetUniqueFilePath(directory, downloadItem.FileName);
+
+        // 注册到活跃下载列表
+        _activeDownloads[downloadItem.Id] = downloadItem;
+        var cts = new CancellationTokenSource();
+        _cancellationTokens[downloadItem.Id] = cts;
+
+        try
+        {
+            if (IsM3u8Url(url))
+            {
+                progress?.Report(0);
+                await _m3u8Service.DownloadM3u8Async(url, downloadItem.FilePath, progress);
+            }
+            else
+            {
+                await ExecuteDownloadAsync(downloadItem, cts.Token, progress);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            if (downloadItem.Status == DownloadStatus.Paused)
+            {
+                // 保持 Paused 状态
+            }
+            else
+            {
+                downloadItem.Status = DownloadStatus.Cancelled;
+                CleanupFailedDownload(downloadItem);
+                _activeDownloads.TryRemove(downloadItem.Id, out _);
+            }
+        }
+        catch (Exception ex)
+        {
+            downloadItem.Status = DownloadStatus.Failed;
+            downloadItem.ErrorMessage = ex.Message;
+            CleanupFailedDownload(downloadItem);
+            _activeDownloads.TryRemove(downloadItem.Id, out _);
+        }
+        finally
+        {
+            _cancellationTokens.TryRemove(downloadItem.Id, out _);
+        }
+
+        return downloadItem;
+    }
+
+    /// <summary>
+    /// 判断是否为视频 URL
+    /// </summary>
+    public static bool IsVideoUrl(string url)
+    {
+        string lower = url.ToLowerInvariant();
+        int queryIndex = lower.IndexOf('?');
+        string path = queryIndex >= 0 ? lower[..queryIndex] : lower;
+
+        return path.EndsWith(".mp4") || path.EndsWith(".webm") || path.EndsWith(".flv")
+            || path.EndsWith(".mov") || path.EndsWith(".avi") || path.EndsWith(".mkv")
+            || path.EndsWith(".m3u8") || path.EndsWith(".m3u") || path.EndsWith(".ts")
+            || path.EndsWith(".wmv");
+    }
+
+    /// <summary>
+    /// 判断是否为 m3u8 URL
+    /// </summary>
+    public static bool IsM3u8Url(string url) => M3u8DownloadService.IsM3u8Url(url);
 
     // ===== 私有方法 =====
 

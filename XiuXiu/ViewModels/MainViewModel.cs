@@ -167,10 +167,33 @@ public partial class MainViewModel : ObservableObject
     private async Task DownloadAllMedia()
     {
         if (ExtractedMedia.Count == 0) return;
-        StatusText = $"正在下载 {ExtractedMedia.Count} 个资源...";
+        int total = ExtractedMedia.Count;
+        int current = 0;
         string downloadDir = _downloadService.GetDownloadDirectory();
-        await _downloadService.StartBatchDownloadAsync(ExtractedMedia.Select(m => m.Url).ToList());
-        StatusText = $"下载完成: {ExtractedMedia.Count} 个资源 → {downloadDir}";
+
+        foreach (var item in ExtractedMedia)
+        {
+            current++;
+            StatusText = $"正在下载 {current}/{total}: {item.FileName}";
+
+            try
+            {
+                if (item.Type == MediaType.Video && DownloadService.IsVideoUrl(item.Url))
+                {
+                    await _downloadService.StartVideoDownloadAsync(item.Url);
+                }
+                else
+                {
+                    await _downloadService.StartDownloadAsync(item.Url);
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusText = $"下载 {item.FileName} 失败: {ex.Message}";
+            }
+        }
+
+        StatusText = $"下载完成: {total} 个资源 → {downloadDir}";
     }
 
     [RelayCommand]
@@ -178,9 +201,42 @@ public partial class MainViewModel : ObservableObject
     {
         if (item == null) return;
         StatusText = $"正在下载: {item.FileName}...";
+
         try
         {
-            var result = await _downloadService.StartDownloadAsync(item.Url);
+            DownloadItem result;
+
+            if (item.Type == MediaType.Video && DownloadService.IsVideoUrl(item.Url))
+            {
+                if (DownloadService.IsM3u8Url(item.Url))
+                {
+                    StatusText = "正在解析m3u8...";
+                }
+
+                var progress = new Progress<double>(p =>
+                {
+                    if (DownloadService.IsM3u8Url(item.Url))
+                    {
+                        if (p < 5)
+                            StatusText = $"正在解析m3u8...";
+                        else if (p < 90)
+                            StatusText = $"下载分片中... {p:F0}%";
+                        else if (p < 100)
+                            StatusText = $"合并视频中...";
+                    }
+                    else
+                    {
+                        StatusText = $"正在下载 {item.FileName}: {p:F0}%";
+                    }
+                });
+
+                result = await _downloadService.StartVideoDownloadAsync(item.Url, progress);
+            }
+            else
+            {
+                result = await _downloadService.StartDownloadAsync(item.Url);
+            }
+
             if (result.Status == Models.DownloadStatus.Completed)
                 StatusText = $"下载完成: {item.FileName}";
             else if (result.Status == Models.DownloadStatus.Failed)

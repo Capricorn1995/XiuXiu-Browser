@@ -51,6 +51,14 @@ public interface IDownloadService
     /// <param name="downloadId">下载任务 ID</param>
     void CancelDownload(string downloadId);
 
+    /// <summary>
+    /// 启动视频下载（自动检测 m3u8/mp4 等格式）
+    /// </summary>
+    /// <param name="url">视频 URL</param>
+    /// <param name="progress">进度报告器（可选）</param>
+    /// <returns>下载任务对象</returns>
+    Task<DownloadItem> StartVideoDownloadAsync(string url, IProgress<double>? progress = null);
+
     /// <summary>获取下载保存目录路径</summary>
     /// <returns>下载目录的完整路径</returns>
     string GetDownloadDirectory();

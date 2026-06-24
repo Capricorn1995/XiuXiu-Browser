@@ -339,7 +339,7 @@ public class MediaExtractionService : IMediaExtractionService
         // 已知的图片扩展名
         var imageExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".ico", ".tiff", ".tif" };
         // 已知的视频扩展名
-        var videoExtensions = new[] { ".mp4", ".webm", ".m3u8", ".flv", ".mov", ".avi", ".mkv", ".wmv", ".ogg" };
+        var videoExtensions = new[] { ".mp4", ".webm", ".m3u8", ".flv", ".mov", ".avi", ".mkv", ".wmv", ".ogg", ".m3u", ".ts" };
 
         // 提取 URL 路径（去掉查询参数和片段）
         string path = url;
@@ -505,11 +505,15 @@ public class MediaExtractionService : IMediaExtractionService
         } catch(e) { return url; }
     }
 
+    function addItem(url, type, source, w, h) {
+        results.push({url: resolveUrl(url), type: type, sourceElement: source, width: w || 0, height: h || 0});
+    }
+
     // 收集所有 img 标签
     document.querySelectorAll('img').forEach(function(img) {
         var src = img.src || img.getAttribute('data-src') || img.getAttribute('data-original') || img.getAttribute('data-lazy-src');
         if (src && !src.startsWith('data:')) {
-            results.push({url: resolveUrl(src), type: 'image', sourceElement: 'img[src]'});
+            addItem(src, 'image', 'img[src]', img.naturalWidth, img.naturalHeight);
         }
     });
 
@@ -517,16 +521,16 @@ public class MediaExtractionService : IMediaExtractionService
     document.querySelectorAll('video').forEach(function(video) {
         var src = video.currentSrc || video.src || video.getAttribute('src');
         if (src && !src.startsWith('blob:') && !src.startsWith('data:')) {
-            results.push({url: resolveUrl(src), type: 'video', sourceElement: 'video[currentSrc]', width: video.videoWidth || 0, height: video.videoHeight || 0});
+            addItem(src, 'video', 'video[currentSrc]', video.videoWidth || 0, video.videoHeight || 0);
         }
         var poster = video.getAttribute('poster');
         if (poster && !poster.startsWith('data:')) {
-            results.push({url: resolveUrl(poster), type: 'image', sourceElement: 'video[poster]'});
+            addItem(poster, 'image', 'video[poster]');
         }
         video.querySelectorAll('source').forEach(function(source) {
             var sourceSrc = source.getAttribute('src') || source.src;
             if (sourceSrc && !sourceSrc.startsWith('blob:') && !sourceSrc.startsWith('data:')) {
-                results.push({url: resolveUrl(sourceSrc), type: 'video', sourceElement: 'video>source'});
+                addItem(sourceSrc, 'video', 'video>source');
             }
         });
     });
@@ -535,15 +539,14 @@ public class MediaExtractionService : IMediaExtractionService
     document.querySelectorAll('iframe').forEach(function(iframe) {
         var src = iframe.getAttribute('src');
         if (src && src.indexOf('http') === 0) {
-            results.push({url: src, type: 'video', sourceElement: 'iframe[src]'});
+            addItem(src, 'video', 'iframe[src]');
         }
-        // 尝试访问同源 iframe 内的视频
         try {
             if (iframe.contentDocument) {
                 iframe.contentDocument.querySelectorAll('video').forEach(function(v) {
                     var vs = v.currentSrc || v.src || v.getAttribute('src');
                     if (vs && !vs.startsWith('blob:') && !vs.startsWith('data:')) {
-                        results.push({url: resolveUrl(vs), type: 'video', sourceElement: 'iframe>video'});
+                        addItem(vs, 'video', 'iframe>video');
                     }
                 });
             }
@@ -560,11 +563,49 @@ public class MediaExtractionService : IMediaExtractionService
                 if (urlMatches) {
                     urlMatches.forEach(function(u) {
                         var t = /\.(mp4|webm|m3u8|flv|mov|avi|mkv)$/i.test(u) ? 'video' : 'image';
-                        results.push({url: u, type: t, sourceElement: 'global[' + key + ']'});
+                        addItem(u, t, 'global[' + key + ']');
                     });
                 }
             } catch(e) {}
         }
+    });
+
+    // 第十三步：扫描页面源码中的视频URL
+    var videoUrlPattern = /(https?:\/\/[^\s""'<>]+\.(?:mp4|webm|m3u8|flv|mov|avi|mkv|ts|wmv)[^\s""'<>]*)/gi;
+    var m3u8Pattern = /(https?:\/\/[^\s""'<>]+\.m3u8[^\s""'<>]*)/gi;
+
+    // 扫描 script 标签
+    document.querySelectorAll('script').forEach(function(script) {
+        var content = script.textContent || script.innerHTML || '';
+        if (!content) return;
+        var matches = content.match(videoUrlPattern);
+        if (matches) {
+            matches.forEach(function(url) {
+                if (/\.(mp4|webm|m3u8|flv|mov|avi|mkv|ts|wmv)/i.test(url)) {
+                    addItem(url, 'video', 'script[content]');
+                }
+            });
+        }
+        var m3u8Matches = content.match(m3u8Pattern);
+        if (m3u8Matches) {
+            m3u8Matches.forEach(function(url) { addItem(url, 'video', 'script[m3u8]'); });
+        }
+    });
+
+    // 扫描页面 HTML 中的 m3u8
+    var htmlM3u8 = document.documentElement.outerHTML.match(m3u8Pattern);
+    if (htmlM3u8) {
+        htmlM3u8.forEach(function(url) { addItem(url, 'video', 'html[m3u8]'); });
+    }
+
+    // 检查 video data 属性
+    ['data-video-url', 'data-mp4', 'data-src', 'data-url', 'data-video', 'data-source'].forEach(function(attr) {
+        document.querySelectorAll('[' + attr + ']').forEach(function(el) {
+            var val = el.getAttribute(attr);
+            if (val && !val.startsWith('data:') && !val.startsWith('blob:') && !val.startsWith('#') && /\.(mp4|webm|m3u8|flv|mov|avi|mkv|ts|wmv)/i.test(val)) {
+                addItem(val, 'video', '[' + attr + ']');
+            }
+        });
     });
 
     return JSON.stringify(results);
